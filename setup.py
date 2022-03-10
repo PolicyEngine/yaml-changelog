@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="PolicyEngine",
+    name="yaml-changelog",
     version="0.1.1",
     author="PolicyEngine",
     license="http://www.fsf.org/licensing/licenses/agpl-3.0.html",
