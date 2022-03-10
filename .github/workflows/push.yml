@@ -12,7 +12,7 @@ jobs:
         with:
           args: ". -l 79 --check"
   Publish:
-    if: github.repository == 'PolicyEngine/yaml-changelog'
+    if: github.repository == 'policyengine/yaml-changelog'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
