@@ -146,7 +146,9 @@ class Changelog:
                     current_date = entry["date"]
                 last_date = current_date
 
-        entries = list(sorted(entries, key=lambda x: x["date"]))
+        entries = list(
+            sorted(entries, key=lambda x: x.get("date", datetime.now()))
+        )
 
         for i in range(1, len(entries)):
             version = entries[i]["_version"]
@@ -174,7 +176,9 @@ class Changelog:
         md_entries = []
         links = []
         version = VersionNumber(major=1, minor=4)
-        entries = sorted(self.entries, key=lambda x: x["date"])
+        entries = sorted(
+            self.entries, key=lambda x: x.get("date", datetime.now())
+        )
         for i in range(len(entries)):
             entry = entries[i]
             previous_version = str(version)
@@ -189,7 +193,7 @@ class Changelog:
                 links += [
                     f"[{version}]: https://github.com/{self.org}/{self.repo}/compare/{previous_version}...{str(version)}"
                 ]
-            entry_text += f"## [{str(version)}] - {datetime.strftime(entry['date'], '%Y-%m-%d %H:%M:%S')}\n\n"
+            entry_text += f"## [{str(version)}] - {datetime.strftime(entry.get('date', datetime.now()), '%Y-%m-%d %H:%M:%S')}\n\n"
             for change_type, change_name in zip(
                 ["added", "changed", "fixed"], ["Added", "Changed", "Fixed"]
             ):
@@ -204,6 +208,8 @@ class Changelog:
             with open(self.template) as f:
                 template = f.read()
             output = template.replace("{{changelog}}", output)
+        self.current_version = str(version)
+        self.previous_version = previous_version
         return output + "\n"
 
     def write_markdown(self, path: Path = "CHANGELOG.md"):
