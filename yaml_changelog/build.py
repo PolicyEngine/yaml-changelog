@@ -71,6 +71,11 @@ class Changelog:
         else:
             raise NotImplementedError("File type not supported")
 
+        if self.update_last_date:
+            for entry in self.entries:
+                if "date" not in entry:
+                    entry["date"] = datetime.now().replace(microsecond=0)
+
     def _get_github_merge_date(self, version: str):
         link = requests.get(
             f"https://api.github.com/repos/policyengine/policyengine/git/ref/tags/{version}"
@@ -131,14 +136,15 @@ class Changelog:
         # Validate dates
         last_date = datetime(2000, 1, 1)
         for entry in entries[::-1]:
-            current_date = entry["date"]
-            if entry["date"] <= last_date:
-                entry["date"] = last_date + timedelta(seconds=1)
-                logging.warn(
-                    f"Invalid date: {current_date} for version {entry['_version']}: setting to {entry['date']}"
-                )
+            if "date" in entry:
                 current_date = entry["date"]
-            last_date = current_date
+                if entry["date"] <= last_date:
+                    entry["date"] = last_date + timedelta(seconds=1)
+                    logging.warn(
+                        f"Invalid date: {current_date} for version {entry['_version']}: setting to {entry['date']}"
+                    )
+                    current_date = entry["date"]
+                last_date = current_date
 
         entries = list(sorted(entries, key=lambda x: x["date"]))
 
@@ -173,9 +179,6 @@ class Changelog:
             entry = entries[i]
             previous_version = str(version)
             entry_text = ""
-            if i == len(entries) - 1:
-                if self.update_last_date:
-                    entry["date"] = datetime.now()
             if "bump" in entry:
                 version.bump(entry["bump"])
             elif "version" in entry:
