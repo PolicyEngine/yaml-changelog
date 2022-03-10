@@ -52,6 +52,7 @@ class Changelog:
         org: str = None,
         template: str = None,
         start_from: str = "0.0.0",
+        update_last_date: bool = False,
     ):
         if isinstance(file, str):
             self.file = Path(file)
@@ -60,6 +61,7 @@ class Changelog:
         self.org = org
         self.template = template
         self.start_from = start_from
+        self.update_last_date = update_last_date
 
         # if yaml file
         if self.file.suffix in (".yaml", ".yml"):
@@ -171,6 +173,9 @@ class Changelog:
             entry = entries[i]
             previous_version = str(version)
             entry_text = ""
+            if i == len(entries) - 1:
+                if self.update_last_date:
+                    entry["date"] = datetime.now()
             if "bump" in entry:
                 version.bump(entry["bump"])
             elif "version" in entry:
@@ -219,6 +224,11 @@ def main():
     )
     parser.add_argument("--start-from", help="Start from a specific version.")
     parser.add_argument("--output", help="Output file to write to.")
+    parser.add_argument(
+        "--update-last-date",
+        help="Update the last date in the changelog.",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     cl = Changelog(
@@ -227,6 +237,7 @@ def main():
         org=args.org,
         template=args.template,
         start_from=args.start_from,
+        update_last_date=args.update_last_date,
     )
     if ".md" in args.output:
         cl.write_markdown(args.output)
