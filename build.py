@@ -152,7 +152,7 @@ class Changelog:
             else:
                 entries[i]["bump"] = "patch"
             del entries[i - 1]["_version"]
-        
+
         del entries[-1]["_version"]
 
         entries[0]["version"] = self.start_from
