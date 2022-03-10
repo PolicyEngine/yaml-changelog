@@ -194,7 +194,7 @@ class Changelog:
             with open(self.template) as f:
                 template = f.read()
             output = template.replace("{{changelog}}", output)
-        return output
+        return output + "\n"
 
     def write_markdown(self, path: Path = "CHANGELOG.md"):
         with open(path, "w") as f:
