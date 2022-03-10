@@ -1,0 +1,21 @@
+- date: 2022-01-01
+  bump: major
+  changes:
+    fixed:
+      - Fix a bug.
+    added:
+      - Add a new feature.
+    changed:
+      - Change a feature.
+- date: 2022-02-01
+  bump: minor
+  changes:
+    fixed:
+      - Fix a bug.
+    added:
+      - Add a new feature.
+- date: 2022-01-03
+  bump: patch
+  changes:
+    fixed:
+      - Fix a bug.
