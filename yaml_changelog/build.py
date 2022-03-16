@@ -39,6 +39,16 @@ class VersionNumber:
         return f"{self.major}.{self.minor}.{self.patch}"
 
 
+CHANGE_TYPES = [
+    "added",
+    "changed",
+    "deprecated",
+    "removed",
+    "fixed",
+    "security",
+]
+
+
 class Changelog:
     entries = None
     starter = None
@@ -100,38 +110,41 @@ class Changelog:
 
         # Parse entries
         for start_line, end_line in zip(line_numbers[:-1], line_numbers[1:]):
-            entry_lines = changelog[start_line:end_line]
-            entry = {}
-            entry["_version"] = (
-                entry_lines[0].split("[")[1].split("]")[0].strip()
-            )
-            entry["date"] = datetime.fromisoformat(
-                entry_lines[0].split(" - ")[1].strip()
-            )
-            entry["changes"] = {}
-            for change_type, change_name in zip(
-                ["added", "changed", "fixed"], ["Added", "Changed", "Fixed"]
-            ):
-                entry["changes"][change_type] = []
-                for subline in range(len(entry_lines)):
-                    if (
-                        "###" in entry_lines[subline]
-                        and change_name in entry_lines[subline]
-                    ):
-                        subline += 1
-                        while (
-                            subline < len(entry_lines)
-                            and "###" not in entry_lines[subline]
+            try:
+                entry_lines = changelog[start_line:end_line]
+                entry = {}
+                entry["_version"] = (
+                    entry_lines[0].split("[")[1].split("]")[0].strip()
+                )
+                entry["date"] = datetime.fromisoformat(
+                    entry_lines[0].split(" - ")[1].strip()
+                )
+                entry["changes"] = {}
+                for change_type in CHANGE_TYPES:
+                    change_name = change_type.capitalize()
+                    entry["changes"][change_type] = []
+                    for subline in range(len(entry_lines)):
+                        if (
+                            "###" in entry_lines[subline]
+                            and change_name in entry_lines[subline]
                         ):
-                            line = entry_lines[subline]
-                            if len(line) > 1 and line[0] == "*":
-                                entry["changes"][change_type].append(
-                                    line[2:].strip()
-                                )
                             subline += 1
-                if len(entry["changes"][change_type]) == 0:
-                    del entry["changes"][change_type]
-            entries.append(entry)
+                            while (
+                                subline < len(entry_lines)
+                                and "###" not in entry_lines[subline]
+                            ):
+                                line = entry_lines[subline]
+                                if len(line) > 1 and line[0] in ("*", "-"):
+                                    entry["changes"][change_type].append(
+                                        line[2:].strip()
+                                    )
+                                subline += 1
+                    if len(entry["changes"][change_type]) == 0:
+                        del entry["changes"][change_type]
+                entries.append(entry)
+            except:
+                logging.error(f"Error parsing entry at line {start_line}")
+                raise
 
         # Validate dates
         last_date = datetime(2000, 1, 1)
