@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from datetime import datetime, timedelta, timezone
 import logging
+import os
 from typing import Union
 from pathlib import Path
 import yaml
@@ -63,6 +64,7 @@ class Changelog:
         template: str = None,
         start_from: str = "0.0.0",
         update_last_date: bool = False,
+        append: Union[str, Path] = None,
     ):
         if isinstance(file, str):
             self.file = Path(file)
@@ -75,7 +77,7 @@ class Changelog:
 
         # if yaml file
         if self.file.suffix in (".yaml", ".yml"):
-            self._parse_from_yaml(self.file)
+            self._parse_from_yaml(self.file, append)
         elif self.file.suffix in (".md", ".markdown"):
             self._parse_from_md(self.file)
         else:
@@ -93,9 +95,12 @@ class Changelog:
         result = requests.get(link["object"]["url"]).json()["author"]["date"]
         return datetime.strptime(result, "%Y-%m-%dT%H:%M:%SZ")
 
-    def _parse_from_yaml(self, file: Path):
+    def _parse_from_yaml(self, file: Path, appended_file: Path = None):
         with open(file) as f:
             self.entries = yaml.safe_load(f)
+        if appended_file is not None:
+            with open(appended_file) as f:
+                self.entries.extend(yaml.safe_load(f))
 
     def _parse_from_md(self, file: Path):
         with open(file) as f:
@@ -237,6 +242,9 @@ class Changelog:
 def main():
     parser = ArgumentParser()
     parser.add_argument("file", help="File to parse.")
+    parser.add_argument(
+        "--append-file", help="File to append to the main YAML file."
+    )
     parser.add_argument("--org", help="Organization to use for GitHub links.")
     parser.add_argument("--repo", help="Repo to link to.")
     parser.add_argument(
@@ -260,6 +268,7 @@ def main():
         template=args.template,
         start_from=args.start_from,
         update_last_date=args.update_last_date,
+        append=args.append_file,
     )
     if ".md" in args.output:
         cl.write_markdown(args.output)
