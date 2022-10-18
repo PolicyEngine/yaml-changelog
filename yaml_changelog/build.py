@@ -55,6 +55,7 @@ class Changelog:
     starter = None
     repo: str = None
     org: str = None
+    start_from: str = "0.0.0"
 
     def __init__(
         self,
@@ -72,7 +73,8 @@ class Changelog:
         self.repo = repo
         self.org = org
         self.template = template
-        self.start_from = start_from
+        if start_from is not None:
+            self.start_from = start_from
         self.update_last_date = update_last_date
 
         # if yaml file
@@ -193,11 +195,12 @@ class Changelog:
     def _write_to_md(self) -> str:
         md_entries = []
         links = []
-        version = VersionNumber(major=1, minor=4)
+        version = VersionNumber()
         entries = sorted(
             self.entries, key=lambda x: x.get("date", datetime.now())
         )
         for i in range(len(entries)):
+            print("debug: ", entries[i])
             entry = entries[i]
             previous_version = str(version)
             entry_text = ""
