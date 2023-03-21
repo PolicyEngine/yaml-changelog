@@ -100,9 +100,22 @@ class Changelog:
     def _parse_from_yaml(self, file: Path, appended_file: Path = None):
         with open(file) as f:
             self.entries = yaml.safe_load(f)
+        for entry in self.entries:
+            for change_type in CHANGE_TYPES:
+                # Move insite entry["changes"]
+                if change_type in entry:
+                    if "changes" not in entry:
+                        entry["changes"] = {}
+                    entry["changes"][change_type] = entry[change_type]
+                    del entry[change_type]
         if appended_file is not None:
             with open(appended_file) as f:
-                self.entries.extend(yaml.safe_load(f))
+                try:
+                    self.entries.extend(yaml.safe_load(f))
+                except TypeError:
+                    raise ValueError(
+                        f"You haven't provided a changelog entry in {appended_file}. It should look like this: \n\n- bump: minor\n  added:\n  - Some new feature."
+                    )
 
     def _parse_from_md(self, file: Path):
         with open(file) as f:
