@@ -6,5 +6,4 @@ install:
 	pip install -e .
 
 format:
-	autopep8 -r . -i
 	black . -l 79
