@@ -8,7 +8,7 @@ from yaml_changelog.utils import (
     get_git_remote_info,
     find_version_files,
     detect_start_version,
-    create_makefile_target
+    create_makefile_target,
 )
 
 
@@ -57,26 +57,22 @@ jobs:
 
 def init_changelog():
     """Initialize yaml-changelog in the current project."""
-    parser = ArgumentParser(
-        description="Initialize yaml-changelog in your project"
-    )
+    parser = ArgumentParser(description="Initialize yaml-changelog in your project")
     parser.add_argument(
-        "--force", "-f",
-        action="store_true",
-        help="Overwrite existing files"
+        "--force", "-f", action="store_true", help="Overwrite existing files"
     )
     parser.add_argument(
         "--start-version",
         default=None,
-        help="Starting version (default: auto-detect or 0.0.0)"
+        help="Starting version (default: auto-detect or 0.0.0)",
     )
     args = parser.parse_args()
-    
+
     # Detect configuration
     org, repo = get_git_remote_info()
     version_files = find_version_files()
     start_version = args.start_version or detect_start_version() or "0.0.0"
-    
+
     print("🔍 Detected configuration:")
     if org and repo:
         print(f"  Organization: {org}")
@@ -85,7 +81,7 @@ def init_changelog():
     if version_files:
         print(f"  Version files: {', '.join(version_files)}")
     print()
-    
+
     # Create changelog.yaml if it doesn't exist
     if not os.path.exists("changelog.yaml") or args.force:
         print("📝 Creating changelog.yaml...")
@@ -93,14 +89,14 @@ def init_changelog():
             f.write(INITIAL_CHANGELOG.format(version=start_version))
     else:
         print("✓ changelog.yaml already exists")
-    
+
     # Create empty changelog_entry.yaml
     if not os.path.exists("changelog_entry.yaml") or args.force:
         print("📝 Creating changelog_entry.yaml...")
         Path("changelog_entry.yaml").touch()
     else:
         print("✓ changelog_entry.yaml already exists")
-    
+
     # Create changelog template
     os.makedirs(".github", exist_ok=True)
     if not os.path.exists(".github/changelog_template.md") or args.force:
@@ -109,7 +105,7 @@ def init_changelog():
             f.write(CHANGELOG_TEMPLATE)
     else:
         print("✓ .github/changelog_template.md already exists")
-    
+
     # Create GitHub workflow
     os.makedirs(".github/workflows", exist_ok=True)
     if not os.path.exists(".github/workflows/check-changelog.yaml") or args.force:
@@ -118,12 +114,12 @@ def init_changelog():
             f.write(GITHUB_WORKFLOW)
     else:
         print("✓ .github/workflows/check-changelog.yaml already exists")
-    
+
     # Add to Makefile if it exists
     if os.path.exists("Makefile"):
         with open("Makefile", "r") as f:
             makefile_content = f.read()
-        
+
         if "changelog:" not in makefile_content:
             print("📝 Adding changelog target to Makefile...")
             with open("Makefile", "a") as f:
@@ -133,16 +129,18 @@ def init_changelog():
     else:
         print("\n💡 Add this to your Makefile:")
         print(create_makefile_target())
-    
+
     # Show next steps
     print("\n✅ yaml-changelog initialized!")
     print("\nNext steps:")
     print("1. Edit changelog_entry.yaml to add your changes")
     print("2. Run 'make changelog' to update the changelog")
     print("3. Commit and push your changes")
-    
+
     if not version_files:
-        print("\n⚠️  No version files detected. You may need to specify them manually in your Makefile.")
+        print(
+            "\n⚠️  No version files detected. You may need to specify them manually in your Makefile."
+        )
 
 
 if __name__ == "__main__":
