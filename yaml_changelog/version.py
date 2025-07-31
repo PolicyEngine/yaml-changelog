@@ -1,7 +1,6 @@
 """Extract version information from changelog."""
 
 from argparse import ArgumentParser
-from pathlib import Path
 from yaml_changelog.build import Changelog
 
 
