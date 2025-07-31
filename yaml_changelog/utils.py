@@ -149,10 +149,17 @@ def create_makefile_target() -> str:
 
     # Build the Makefile target
     target = "changelog:\n"
-    target += f"\tbuild-changelog changelog.yaml --output changelog.yaml --update-last-date --start-from {start_version} --append-file changelog_entry.yaml\n"
+    target += (
+        f"\tbuild-changelog changelog.yaml --output changelog.yaml "
+        f"--update-last-date --start-from {start_version} "
+        f"--append-file changelog_entry.yaml\n"
+    )
 
     if org and repo:
-        target += f"\tbuild-changelog changelog.yaml --org {org} --repo {repo} --output CHANGELOG.md"
+        target += (
+            f"\tbuild-changelog changelog.yaml --org {org} "
+            f"--repo {repo} --output CHANGELOG.md"
+        )
     else:
         target += "\tbuild-changelog changelog.yaml --output CHANGELOG.md"
 

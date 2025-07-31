@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import logging
 import os
 from typing import Union, List, Dict, Any, Optional
@@ -93,7 +93,8 @@ class Changelog:
             org: GitHub organization name for generating comparison links
             template: Path to Markdown template file
             start_from: Starting version number (default: "0.0.0")
-            update_last_date: Whether to update entries without dates to current timestamp
+            update_last_date: Whether to update entries without dates to
+            current timestamp
             append: Path to changelog entry file to append to main changelog
 
         Raises:
@@ -134,7 +135,8 @@ class Changelog:
             DateTime when the version was tagged
         """
         link = requests.get(
-            f"https://api.github.com/repos/policyengine/policyengine/git/ref/tags/{version}"
+            f"https://api.github.com/repos/policyengine/"
+            f"policyengine/git/ref/tags/{version}"
         ).json()
         result = requests.get(link["object"]["url"]).json()["author"]["date"]
         return datetime.strptime(result, "%Y-%m-%dT%H:%M:%SZ")
@@ -166,7 +168,8 @@ class Changelog:
             if not os.path.exists(appended_file):
                 raise FileNotFoundError(
                     f"Error: changelog_entry.yaml not found at '{appended_file}'.\n\n"
-                    f"When using --append-file (often in --release mode), you must create a changelog_entry.yaml file.\n\n"
+                    f"When using --append-file (often in --release mode), "
+                    f"you must create a changelog_entry.yaml file.\n\n"
                     f"Example changelog_entry.yaml:\n"
                     f"- bump: patch\n"
                     f"  fixed:\n"
@@ -182,7 +185,9 @@ class Changelog:
                     self.entries.extend(yaml.safe_load(f))
                 except TypeError:
                     raise ValueError(
-                        f"You haven't provided a changelog entry in {appended_file}. It should look like this: \n\n- bump: minor\n  added:\n  - Some new feature."
+                        f"You haven't provided a changelog entry in "
+                        f"{appended_file}. It should look like this: \n\n"
+                        f"- bump: minor\n  added:\n  - Some new feature."
                     )
 
         # Validate all entries
@@ -244,7 +249,7 @@ class Changelog:
                     if len(entry["changes"][change_type]) == 0:
                         del entry["changes"][change_type]
                 entries.append(entry)
-            except:
+            except Exception:
                 logging.error(f"Error parsing entry at line {start_line}")
                 raise
 
@@ -256,7 +261,8 @@ class Changelog:
                 if entry["date"] <= last_date:
                     entry["date"] = last_date + timedelta(seconds=1)
                     logging.warning(
-                        f"Invalid date: {current_date} for version {entry['_version']}: setting to {entry['date']}"
+                        f"Invalid date: {current_date} for version "
+                        f"{entry['_version']}: setting to {entry['date']}"
                     )
                     current_date = entry["date"]
                 last_date = current_date
@@ -333,7 +339,8 @@ class Changelog:
         version = VersionNumber()
 
         # Sort entries by date, but if no dates exist, reverse the order
-        # (self.entries is newest-first, but we need oldest-first for version calculation)
+        # (self.entries is newest-first, but we need oldest-first for
+        # version calculation)
         has_dates = any("date" in entry for entry in self.entries)
         if has_dates:
             entries = sorted(
@@ -427,9 +434,14 @@ class Changelog:
 
             if self.repo is not None and i > 0:
                 links += [
-                    f"[{current_ver}]: https://github.com/{self.org}/{self.repo}/compare/{previous_ver}...{current_ver}"
+                    f"[{current_ver}]: https://github.com/{self.org}/"
+                    f"{self.repo}/compare/{previous_ver}...{current_ver}"
                 ]
-            entry_text += f"## [{current_ver}] - {datetime.strftime(entry.get('date', datetime.now()), '%Y-%m-%d %H:%M:%S')}\n\n"
+            date_str = datetime.strftime(
+                entry.get('date', datetime.now()),
+                '%Y-%m-%d %H:%M:%S'
+            )
+            entry_text += f"## [{current_ver}] - {date_str}\n\n"
             for change_type, change_name in zip(
                 ["added", "changed", "fixed"], ["Added", "Changed", "Fixed"]
             ):

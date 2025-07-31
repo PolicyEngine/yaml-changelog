@@ -1,7 +1,6 @@
 """Initialize yaml-changelog in a project."""
 
 import os
-import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from yaml_changelog.utils import (
@@ -40,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Check for changelog entry
       run: |
         if [ -f "changelog_entry.yaml" ]; then
@@ -57,7 +56,9 @@ jobs:
 
 def init_changelog():
     """Initialize yaml-changelog in the current project."""
-    parser = ArgumentParser(description="Initialize yaml-changelog in your project")
+    parser = ArgumentParser(
+        description="Initialize yaml-changelog in your project"
+    )
     parser.add_argument(
         "--force", "-f", action="store_true", help="Overwrite existing files"
     )
@@ -108,7 +109,10 @@ def init_changelog():
 
     # Create GitHub workflow
     os.makedirs(".github/workflows", exist_ok=True)
-    if not os.path.exists(".github/workflows/check-changelog.yaml") or args.force:
+    if (
+        not os.path.exists(".github/workflows/check-changelog.yaml")
+        or args.force
+    ):
         print("📝 Creating .github/workflows/check-changelog.yaml...")
         with open(".github/workflows/check-changelog.yaml", "w") as f:
             f.write(GITHUB_WORKFLOW)
@@ -139,7 +143,8 @@ def init_changelog():
 
     if not version_files:
         print(
-            "\n⚠️  No version files detected. You may need to specify them manually in your Makefile."
+            "\n⚠️  No version files detected. You may need to specify "
+            "them manually in your Makefile."
         )
 
 

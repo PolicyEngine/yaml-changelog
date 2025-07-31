@@ -1,6 +1,5 @@
 """Tests for utility functions."""
 
-import pytest
 import tempfile
 import os
 import subprocess
@@ -20,7 +19,8 @@ class TestGetGitRemoteInfo:
     def test_ssh_url(self, mock_run):
         """Test parsing SSH git URL."""
         mock_run.return_value = MagicMock(
-            stdout="git@github.com:PolicyEngine/yaml-changelog.git\n", returncode=0
+            stdout="git@github.com:PolicyEngine/yaml-changelog.git\n",
+            returncode=0,
         )
 
         org, repo = get_git_remote_info()
@@ -31,7 +31,8 @@ class TestGetGitRemoteInfo:
     def test_https_url_with_git(self, mock_run):
         """Test parsing HTTPS git URL with .git suffix."""
         mock_run.return_value = MagicMock(
-            stdout="https://github.com/PolicyEngine/yaml-changelog.git\n", returncode=0
+            stdout="https://github.com/PolicyEngine/yaml-changelog.git\n",
+            returncode=0,
         )
 
         org, repo = get_git_remote_info()
@@ -42,7 +43,8 @@ class TestGetGitRemoteInfo:
     def test_https_url_without_git(self, mock_run):
         """Test parsing HTTPS git URL without .git suffix."""
         mock_run.return_value = MagicMock(
-            stdout="https://github.com/PolicyEngine/yaml-changelog\n", returncode=0
+            stdout="https://github.com/PolicyEngine/yaml-changelog\n",
+            returncode=0,
         )
 
         org, repo = get_git_remote_info()
@@ -145,7 +147,9 @@ class TestDetectStartVersion:
 
     def test_detect_from_changelog(self):
         """Test detecting version from existing changelog."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yaml", delete=False
+        ) as f:
             import yaml
 
             yaml.dump(
@@ -171,7 +175,9 @@ class TestDetectStartVersion:
 
     def test_empty_changelog(self):
         """Test when changelog is empty."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yaml", delete=False
+        ) as f:
             f.write("")
             f.flush()
 
@@ -202,7 +208,10 @@ class TestCreateMakefileTarget:
         assert "changelog:" in target
         assert "--start-from 0.1.0" in target
         assert "--org PolicyEngine --repo test-repo" in target
-        assert "bump-version changelog.yaml setup.py package/__init__.py" in target
+        assert (
+            "bump-version changelog.yaml setup.py package/__init__.py"
+            in target
+        )
         assert "--template .github/changelog_template.md" in target
 
     @patch("yaml_changelog.utils.get_git_remote_info")

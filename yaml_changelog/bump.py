@@ -32,7 +32,10 @@ def find_version_patterns(
             rf"\g<1>{current_version}\g<3>",
         ),
         # package.json
-        (rf'"version"\s*:\s*"({prev_escaped})"', f'"version": "{current_version}"'),
+        (
+            rf'"version"\s*:\s*"({prev_escaped})"',
+            f'"version": "{current_version}"',
+        ),
         # __init__.py or version files with double quotes
         (
             rf'(__version__\s*=\s*")({prev_escaped})(")',
@@ -46,7 +49,10 @@ def find_version_patterns(
         # VERSION or version.txt files
         (rf"^{prev_escaped}$", current_version),
         # Cargo.toml
-        (rf'version\s*=\s*"({prev_escaped})"', f'version = "{current_version}"'),
+        (
+            rf'version\s*=\s*"({prev_escaped})"',
+            f'version = "{current_version}"',
+        ),
         # Maven pom.xml
         (
             rf"<version>({prev_escaped})</version>",
@@ -90,7 +96,9 @@ def bump_version_in_file(
 
 
 def main():
-    parser = ArgumentParser(description="Bump version numbers from changelog.yaml")
+    parser = ArgumentParser(
+        description="Bump version numbers from changelog.yaml"
+    )
     parser.add_argument("changelog_file", help="Path to changelog.yaml")
     parser.add_argument(
         "files", nargs="*", help="Paths to files to bump version numbers in"
@@ -98,13 +106,16 @@ def main():
     parser.add_argument(
         "--unsafe",
         action="store_true",
-        help="Use simple string replacement (unsafe, may replace unintended occurrences)",
+        help="Use simple string replacement (unsafe, may replace "
+        "unintended occurrences)",
     )
     args = parser.parse_args()
 
     changelog = Changelog(args.changelog_file)
     changelog._write_to_md()
-    print(f"Bumping from {changelog.previous_version} to {changelog.current_version}")
+    print(
+        f"Bumping from {changelog.previous_version} to {changelog.current_version}"
+    )
 
     for file in args.files:
         if args.unsafe:

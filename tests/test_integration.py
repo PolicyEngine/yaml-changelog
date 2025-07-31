@@ -1,10 +1,11 @@
 """Integration tests for yaml-changelog."""
 
-import pytest
 import tempfile
 import os
 import subprocess
 import sys
+
+import pytest
 
 
 class TestCLIIntegration:
@@ -19,7 +20,9 @@ class TestCLIIntegration:
         ]
 
         for cmd in commands:
-            result = subprocess.run([cmd, "--help"], capture_output=True, text=True)
+            result = subprocess.run(
+                [cmd, "--help"], capture_output=True, text=True
+            )
             assert result.returncode == 0
             assert "usage:" in result.stdout.lower()
 
@@ -81,7 +84,27 @@ class TestCLIIntegration:
             with open(pyproject_path, "w") as f:
                 f.write('[tool.poetry]\nversion = "1.0.0"')
 
-            # Build changelog
+            # First, update the changelog.yaml with the appended entry
+            result = subprocess.run(
+                [
+                    "build-changelog",
+                    changelog_path,
+                    "--output",
+                    changelog_path,
+                    "--append-file",
+                    entry_path,
+                ],
+                capture_output=True,
+                text=True,
+            )
+            assert result.returncode == 0
+
+            # Debug: check the updated changelog
+            with open(changelog_path) as f:
+                print("Updated changelog.yaml:")
+                print(f.read())
+
+            # Then build the markdown
             md_path = os.path.join(tmpdir, "CHANGELOG.md")
             result = subprocess.run(
                 [
@@ -89,8 +112,6 @@ class TestCLIIntegration:
                     changelog_path,
                     "--output",
                     md_path,
-                    "--append-file",
-                    entry_path,
                     "--org",
                     "TestOrg",
                     "--repo",
@@ -117,12 +138,21 @@ class TestCLIIntegration:
             )
 
             assert result.returncode == 0
+            # Debug output
+            if result.stdout:
+                print("Bump stdout:", result.stdout)
 
             # Check versions were updated
             with open(setup_path) as f:
                 content = f.read()
-                assert 'version="1.1.0"' in content or 'version = "1.1.0"' in content
+                assert (
+                    'version="1.1.0"' in content
+                    or 'version = "1.1.0"' in content
+                )
 
             with open(pyproject_path) as f:
                 content = f.read()
-                assert 'version = "1.1.0"' in content or 'version="1.1.0"' in content
+                assert (
+                    'version = "1.1.0"' in content
+                    or 'version="1.1.0"' in content
+                )
