@@ -56,6 +56,7 @@ def find_version_files() -> List[str]:
         "pyproject.toml",
         "__init__.py",
         "*/__init__.py",
+        "**/__init__.py",  # Also search deeper
         "*/version.py",
         "*/constants.py",
         "package.json",
@@ -63,22 +64,28 @@ def find_version_files() -> List[str]:
         "pom.xml",
     ]
 
-    cwd = Path(".")
+    cwd = Path.cwd()  # Use cwd() instead of "." for better compatibility
     for pattern in patterns:
         # Handle both direct files and glob patterns
         if "*" in pattern:
             # It's a glob pattern
-            for path in cwd.glob(pattern):
+            matching_paths = list(cwd.glob(pattern))
+            for path in matching_paths:
                 if path.is_file():
                     # Check if file contains version string
                     try:
                         content = path.read_text()
+                        # Match various version patterns:
+                        # Python: version = "1.2.3", __version__ = "1.2.3"
+                        # JSON: "version": "1.2.3"
+                        # TOML: version = "1.2.3"
                         if re.search(
-                            r'version\s*[=:]\s*["\']?\d+\.\d+\.\d+',
+                            r'(?:__)?version(?:__)?["\']*\s*[=:]\s*["\']\d+\.\d+\.\d+',
                             content,
                             re.IGNORECASE,
                         ):
-                            version_files.append(str(path))
+                            # Return relative path
+                            version_files.append(str(path.relative_to(cwd)))
                     except Exception:
                         pass
         else:
@@ -87,10 +94,17 @@ def find_version_files() -> List[str]:
             if path.is_file():
                 try:
                     content = path.read_text()
+                    # Match various version patterns:
+                    # Python: version = "1.2.3", __version__ = "1.2.3"
+                    # JSON: "version": "1.2.3"
+                    # TOML: version = "1.2.3"
                     if re.search(
-                        r'version\s*[=:]\s*["\']?\d+\.\d+\.\d+', content, re.IGNORECASE
+                        r'(?:__)?version(?:__)?["\']*\s*[=:]\s*["\']\d+\.\d+\.\d+',
+                        content,
+                        re.IGNORECASE,
                     ):
-                        version_files.append(str(path))
+                        # Return relative path
+                        version_files.append(str(path.relative_to(cwd)))
                 except Exception:
                     pass
 
