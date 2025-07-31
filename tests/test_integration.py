@@ -155,20 +155,24 @@ class TestCLIIntegration:
             # Create initial changelog
             changelog_path = os.path.join(tmpdir, "changelog.yaml")
             with open(changelog_path, "w") as f:
-                f.write("""- version: 1.0.0
+                f.write(
+                    """- version: 1.0.0
   changes:
     added:
       - Initial release
-""")
+"""
+                )
 
             # Create changelog entry
             entry_path = os.path.join(tmpdir, "changelog_entry.yaml")
             with open(entry_path, "w") as f:
-                f.write("""- bump: minor
+                f.write(
+                    """- bump: minor
   changes:
     added:
       - New feature
-""")
+"""
+                )
 
             # Run with --release flag
             result = subprocess.run(
@@ -179,11 +183,11 @@ class TestCLIIntegration:
             )
 
             assert result.returncode == 0
-            
+
             # Check that changelog was updated
             with open(changelog_path) as f:
                 content = f.read()
             assert "New feature" in content
-            
+
             # Check that changelog_entry.yaml was removed
             assert not os.path.exists(entry_path)

@@ -534,7 +534,7 @@ def main() -> None:
         cl.write_markdown(args.output)
     elif ".yaml" in args.output:
         cl.write_yaml(args.output)
-        
+
     # Remove changelog_entry.yaml after successful release
     if args.release and args.append_file and os.path.exists(args.append_file):
         os.remove(args.append_file)
