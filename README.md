@@ -177,7 +177,28 @@ build-changelog changelog.yaml --release
 Update version numbers in your project files.
 
 ```bash
-bump-version [--major|--minor|--patch]
+bump-version changelog.yaml setup.py src/__init__.py
+```
+
+### get-version
+
+Extract the current version from a changelog file.
+
+```bash
+# Print current version
+get-version changelog.yaml
+# Output: 1.2.3
+
+# Use in CI scripts
+VERSION=$(get-version changelog.yaml)
+git tag "v$VERSION"
+```
+
+You can also use the `--print-version` flag with build-changelog:
+
+```bash
+build-changelog changelog.yaml --print-version
+# Output: 1.2.3
 ```
 
 ## CI/CD Integration

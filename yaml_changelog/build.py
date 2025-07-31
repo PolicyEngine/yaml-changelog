@@ -499,6 +499,11 @@ def main() -> None:
         help="Release mode: append changelog_entry.yaml and update in place",
         action="store_true",
     )
+    parser.add_argument(
+        "--print-version",
+        help="Print the current version and exit",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     # Handle --release mode
@@ -530,6 +535,13 @@ def main() -> None:
         update_last_date=args.update_last_date,
         append=args.append_file,
     )
+
+    # Handle --print-version
+    if args.print_version:
+        cl._write_to_md()  # Calculate versions
+        print(cl.current_version)
+        return
+
     if ".md" in args.output:
         cl.write_markdown(args.output)
     elif ".yaml" in args.output:

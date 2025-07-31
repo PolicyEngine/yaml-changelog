@@ -191,3 +191,39 @@ class TestCLIIntegration:
 
             # Check that changelog_entry.yaml was removed
             assert not os.path.exists(entry_path)
+
+    def test_version_extraction(self):
+        """Test version extraction utilities."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create changelog with known version
+            changelog_path = os.path.join(tmpdir, "changelog.yaml")
+            with open(changelog_path, "w") as f:
+                f.write(
+                    """- bump: minor
+  changes:
+    added:
+      - Feature Y
+- version: 2.3.4
+  changes:
+    added:
+      - Feature X
+"""
+                )
+
+            # Test get-version command
+            result = subprocess.run(
+                ["get-version", changelog_path],
+                capture_output=True,
+                text=True,
+            )
+            assert result.returncode == 0
+            assert result.stdout.strip() == "2.4.0"
+
+            # Test build-changelog --print-version
+            result = subprocess.run(
+                ["build-changelog", changelog_path, "--print-version"],
+                capture_output=True,
+                text=True,
+            )
+            assert result.returncode == 0
+            assert result.stdout.strip() == "2.4.0"

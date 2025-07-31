@@ -9,6 +9,7 @@
       - Safe version bumping with regex patterns to avoid unintended replacements (fixes #11)
       - --release flag for simplified release workflow (fixes #18)
       - Documentation for YAML changelog structure and format (fixes #22)
+      - get-version command and --print-version flag for version extraction (fixes #21)
       - GitHub Actions CI workflow for testing pull requests
       - GitHub Actions release workflow for automated releases
       - Reusable GitHub Actions workflows to reduce duplication
