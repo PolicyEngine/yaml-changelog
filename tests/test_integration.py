@@ -227,3 +227,22 @@ class TestCLIIntegration:
             )
             assert result.returncode == 0
             assert result.stdout.strip() == "2.4.0"
+
+    def test_missing_output_error(self):
+        """Test helpful error message for missing --output."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            changelog_path = os.path.join(tmpdir, "changelog.yaml")
+            with open(changelog_path, "w") as f:
+                f.write("- version: 1.0.0\n  changes:\n    added:\n      - Initial")
+
+            # Test missing output argument
+            result = subprocess.run(
+                ["build-changelog", changelog_path],
+                capture_output=True,
+                text=True,
+            )
+            assert result.returncode != 0
+            assert "--output is required" in result.stderr
+            assert "Examples:" in result.stderr
+            assert "Convert to Markdown:" in result.stderr
+            assert "Release mode" in result.stderr

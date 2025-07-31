@@ -506,6 +506,21 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Validate required arguments
+    if not args.print_version and not args.output:
+        parser.error(
+            "\nError: --output is required (unless using --print-version)\n\n"
+            "Examples:\n"
+            "  # Convert to Markdown:\n"
+            "  build-changelog changelog.yaml --output CHANGELOG.md\n\n"
+            "  # Update YAML in place:\n"
+            "  build-changelog changelog.yaml --output changelog.yaml --append-file changelog_entry.yaml\n\n"
+            "  # Release mode (automatic):\n"
+            "  build-changelog changelog.yaml --release\n\n"
+            "  # Just print version:\n"
+            "  build-changelog changelog.yaml --print-version"
+        )
+
     # Handle --release mode
     if args.release:
         # Release mode defaults
