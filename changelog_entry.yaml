@@ -1,0 +1,29 @@
+- bump: minor
+  changes:
+    added:
+      - yaml-changelog command alias for consistency with package name (fixes #14)
+      - __main__.py module to support python -m yaml_changelog execution (fixes #15)
+      - Comprehensive type hints and docstrings throughout the codebase
+      - Clear error message when changelog_entry.yaml is missing in release mode (fixes #17)
+      - Validation for changelog entry change types to prevent silent failures (fixes #13)
+      - Safe version bumping with regex patterns to avoid unintended replacements (fixes #11)
+      - --release flag for simplified release workflow (fixes #18)
+      - Documentation for YAML changelog structure and format (fixes #22)
+      - get-version command and --print-version flag for version extraction (fixes #21)
+      - Helpful error messages with usage examples for missing arguments (fixes #19)
+      - GitHub Actions CI workflow for testing pull requests
+      - GitHub Actions release workflow for automated releases
+      - Reusable GitHub Actions workflows to reduce duplication
+      - yaml-changelog-init command to initialize changelog setup in new projects
+      - Auto-detection utilities for git organization/repo and version files
+      - --auto-detect flag for build-changelog to automatically find org/repo from git
+      - Comprehensive pytest test suite for all functionality
+      - Support for Python 3.9-3.13 (dropped 3.8)
+    changed:
+      - Improved README with installation instructions, usage examples, and CI/CD integration guides (fixes #16)
+      - Enhanced version bumping to use pattern matching instead of simple string replacement
+      - Replaced deprecated logging.warn with logging.warning
+      - GitHub Actions workflows now use reusable components to avoid duplication
+    fixed:
+      - Version bumping no longer affects import statements or other unintended version strings
+      - Support for alternative changelog entry format without nested changes layer (fixes #9)

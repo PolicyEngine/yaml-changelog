@@ -1,0 +1,1 @@
+# Tests for yaml-changelog

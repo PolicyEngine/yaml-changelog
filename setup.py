@@ -13,10 +13,23 @@ setup(
         "pyyaml",
         "requests",
     ],
+    extras_require={
+        "dev": [
+            "pytest>=6.0",
+            "black",
+            "flake8",
+            "mypy",
+            "types-PyYAML",
+            "types-requests",
+        ]
+    },
     entry_points={
         "console_scripts": [
             "build-changelog = yaml_changelog.build:main",
+            "yaml-changelog = yaml_changelog.build:main",
             "bump-version = yaml_changelog.bump:main",
+            "yaml-changelog-init = yaml_changelog.init:init_changelog",
+            "get-version = yaml_changelog.version:main",
         ],
     },
     packages=find_packages(),
