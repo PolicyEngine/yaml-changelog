@@ -96,9 +96,7 @@ def bump_version_in_file(
 
 
 def main():
-    parser = ArgumentParser(
-        description="Bump version numbers from changelog.yaml"
-    )
+    parser = ArgumentParser(description="Bump version numbers from changelog.yaml")
     parser.add_argument("changelog_file", help="Path to changelog.yaml")
     parser.add_argument(
         "files", nargs="*", help="Paths to files to bump version numbers in"
@@ -113,9 +111,7 @@ def main():
 
     changelog = Changelog(args.changelog_file)
     changelog._write_to_md()
-    print(
-        f"Bumping from {changelog.previous_version} to {changelog.current_version}"
-    )
+    print(f"Bumping from {changelog.previous_version} to {changelog.current_version}")
 
     for file in args.files:
         if args.unsafe:

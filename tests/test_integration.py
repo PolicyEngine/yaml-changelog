@@ -20,9 +20,7 @@ class TestCLIIntegration:
         ]
 
         for cmd in commands:
-            result = subprocess.run(
-                [cmd, "--help"], capture_output=True, text=True
-            )
+            result = subprocess.run([cmd, "--help"], capture_output=True, text=True)
             assert result.returncode == 0
             assert "usage:" in result.stdout.lower()
 
@@ -145,14 +143,8 @@ class TestCLIIntegration:
             # Check versions were updated
             with open(setup_path) as f:
                 content = f.read()
-                assert (
-                    'version="1.1.0"' in content
-                    or 'version = "1.1.0"' in content
-                )
+                assert 'version="1.1.0"' in content or 'version = "1.1.0"' in content
 
             with open(pyproject_path) as f:
                 content = f.read()
-                assert (
-                    'version = "1.1.0"' in content
-                    or 'version="1.1.0"' in content
-                )
+                assert 'version = "1.1.0"' in content or 'version="1.1.0"' in content

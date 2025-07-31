@@ -60,9 +60,7 @@ class TestChangelog:
 
     def test_parse_yaml_simple(self):
         """Test parsing a simple YAML changelog."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(
                 """
 - bump: minor
@@ -121,21 +119,15 @@ class TestChangelog:
                     cl = Changelog(main_file.name, append=append_file.name)
                     assert len(cl.entries) == 2
                     # The appended entry should be added to the list
-                    assert any(
-                        entry.get("bump") == "patch" for entry in cl.entries
-                    )
+                    assert any(entry.get("bump") == "patch" for entry in cl.entries)
                 finally:
                     os.unlink(main_file.name)
                     os.unlink(append_file.name)
 
     def test_missing_append_file(self):
         """Test error when append file is missing."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
-            f.write(
-                "- version: 0.1.0\n  changes:\n    added:\n      - Initial"
-            )
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+            f.write("- version: 0.1.0\n  changes:\n    added:\n      - Initial")
             f.flush()
 
             try:
@@ -148,9 +140,7 @@ class TestChangelog:
 
     def test_invalid_change_type(self):
         """Test validation of invalid change types."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(
                 """
 - bump: patch
@@ -162,9 +152,7 @@ class TestChangelog:
             f.flush()
 
             try:
-                with pytest.raises(
-                    ValueError, match="Invalid change type 'fixes'"
-                ):
+                with pytest.raises(ValueError, match="Invalid change type 'fixes'"):
                     Changelog(f.name)
             finally:
                 os.unlink(f.name)
@@ -175,9 +163,7 @@ class TestChangelog:
         for change_type in CHANGE_TYPES:
             changes[change_type] = [f"Test {change_type}"]
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             import yaml
 
             yaml.dump([{"bump": "patch", "changes": changes}], f)
@@ -192,9 +178,7 @@ class TestChangelog:
 
     def test_write_markdown(self):
         """Test writing changelog to markdown."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(
                 """
 - bump: minor
@@ -241,9 +225,7 @@ class TestChangelog:
 
     def test_alternative_format(self):
         """Test alternative changelog format without nested 'changes'."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(
                 """
 - bump: patch
@@ -260,8 +242,6 @@ class TestChangelog:
                 assert len(cl.entries) == 1
                 assert "fixed" in cl.entries[0]["changes"]
                 assert "added" in cl.entries[0]["changes"]
-                assert cl.entries[0]["changes"]["fixed"] == [
-                    "Direct fix entry"
-                ]
+                assert cl.entries[0]["changes"]["fixed"] == ["Direct fix entry"]
             finally:
                 os.unlink(f.name)

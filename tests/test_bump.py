@@ -55,10 +55,7 @@ setup(
 
                 with open(f.name) as rf:
                     content = rf.read()
-                assert (
-                    'version="1.2.4"' in content
-                    or 'version = "1.2.4"' in content
-                )
+                assert 'version="1.2.4"' in content or 'version = "1.2.4"' in content
                 assert (
                     'version="1.2.3"' not in content
                     and 'version = "1.2.3"' not in content
@@ -150,9 +147,7 @@ from .core import main'''
 
     def test_bump_no_version_found(self):
         """Test when no version pattern is found."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write("This file has no version information")
             f.flush()
 
@@ -169,9 +164,7 @@ from .core import main'''
 
     def test_no_unintended_replacements(self):
         """Test that version bumping doesn't replace unintended strings."""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(
                 """from package_1_2_3 import something
 import another_1_2_3

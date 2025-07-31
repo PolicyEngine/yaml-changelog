@@ -220,9 +220,7 @@ class Changelog:
             try:
                 entry_lines = changelog[start_line:end_line]
                 entry = {}
-                entry["_version"] = (
-                    entry_lines[0].split("[")[1].split("]")[0].strip()
-                )
+                entry["_version"] = entry_lines[0].split("[")[1].split("]")[0].strip()
                 entry["date"] = datetime.fromisoformat(
                     entry_lines[0].split(" - ")[1].strip()
                 )
@@ -267,9 +265,7 @@ class Changelog:
                     current_date = entry["date"]
                 last_date = current_date
 
-        entries = list(
-            sorted(entries, key=lambda x: x.get("date", datetime.now()))
-        )
+        entries = list(sorted(entries, key=lambda x: x.get("date", datetime.now())))
 
         for i in range(1, len(entries)):
             version = entries[i]["_version"]
@@ -308,9 +304,7 @@ class Changelog:
                         if "version" in entry:
                             entry_desc = f"version {entry['version']}"
                         elif "bump" in entry:
-                            entry_desc = (
-                                f"entry {i + 1} (bump: {entry['bump']})"
-                            )
+                            entry_desc = f"entry {i + 1} (bump: {entry['bump']})"
 
                         raise ValueError(
                             f"Invalid change type '{change_type}' in {entry_desc}. "
@@ -343,9 +337,7 @@ class Changelog:
         # version calculation)
         has_dates = any("date" in entry for entry in self.entries)
         if has_dates:
-            entries = sorted(
-                self.entries, key=lambda x: x.get("date", datetime.now())
-            )
+            entries = sorted(self.entries, key=lambda x: x.get("date", datetime.now()))
         else:
             # No dates, so reverse to get chronological order
             entries = list(reversed(self.entries))
@@ -438,8 +430,7 @@ class Changelog:
                     f"{self.repo}/compare/{previous_ver}...{current_ver}"
                 ]
             date_str = datetime.strftime(
-                entry.get('date', datetime.now()),
-                '%Y-%m-%d %H:%M:%S'
+                entry.get("date", datetime.now()), "%Y-%m-%d %H:%M:%S"
             )
             entry_text += f"## [{current_ver}] - {date_str}\n\n"
             for change_type, change_name in zip(
@@ -483,9 +474,7 @@ def main() -> None:
     """Main entry point for the build-changelog command."""
     parser = ArgumentParser()
     parser.add_argument("file", help="File to parse.")
-    parser.add_argument(
-        "--append-file", help="File to append to the main YAML file."
-    )
+    parser.add_argument("--append-file", help="File to append to the main YAML file.")
     parser.add_argument("--org", help="Organization to use for GitHub links.")
     parser.add_argument("--repo", help="Repo to link to.")
     parser.add_argument(
