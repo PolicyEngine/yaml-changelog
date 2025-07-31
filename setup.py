@@ -13,6 +13,16 @@ setup(
         "pyyaml",
         "requests",
     ],
+    extras_require={
+        "dev": [
+            "pytest>=6.0",
+            "black",
+            "flake8",
+            "mypy",
+            "types-PyYAML",
+            "types-requests",
+        ]
+    },
     entry_points={
         "console_scripts": [
             "build-changelog = yaml_changelog.build:main",

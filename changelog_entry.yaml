@@ -13,6 +13,8 @@
       - yaml-changelog-init command to initialize changelog setup in new projects
       - Auto-detection utilities for git organization/repo and version files
       - --auto-detect flag for build-changelog to automatically find org/repo from git
+      - Comprehensive pytest test suite for all functionality
+      - Support for Python 3.9-3.13 (dropped 3.8)
     changed:
       - Improved README with installation instructions, usage examples, and CI/CD integration guides (fixes #16)
       - Enhanced version bumping to use pattern matching instead of simple string replacement
