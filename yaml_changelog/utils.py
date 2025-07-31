@@ -63,10 +63,28 @@ def find_version_files() -> List[str]:
         "pom.xml",
     ]
 
+    cwd = Path(".")
     for pattern in patterns:
-        for path in Path(".").glob(pattern):
+        # Handle both direct files and glob patterns
+        if "*" in pattern:
+            # It's a glob pattern
+            for path in cwd.glob(pattern):
+                if path.is_file():
+                    # Check if file contains version string
+                    try:
+                        content = path.read_text()
+                        if re.search(
+                            r'version\s*[=:]\s*["\']?\d+\.\d+\.\d+',
+                            content,
+                            re.IGNORECASE,
+                        ):
+                            version_files.append(str(path))
+                    except Exception:
+                        pass
+        else:
+            # It's a direct file path
+            path = cwd / pattern
             if path.is_file():
-                # Check if file contains version string
                 try:
                     content = path.read_text()
                     if re.search(

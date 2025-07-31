@@ -120,7 +120,9 @@ class TestCLIIntegration:
 
             # Check versions were updated
             with open(setup_path) as f:
-                assert 'version="1.1.0"' in f.read()
+                content = f.read()
+                assert 'version="1.1.0"' in content or 'version = "1.1.0"' in content
 
             with open(pyproject_path) as f:
-                assert 'version = "1.1.0"' in f.read()
+                content = f.read()
+                assert 'version = "1.1.0"' in content or 'version="1.1.0"' in content

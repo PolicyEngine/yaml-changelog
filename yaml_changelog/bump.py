@@ -21,25 +21,27 @@ def find_version_patterns(
 
     # Common version patterns in different file types
     patterns = [
-        # Python setup.py / pyproject.toml
+        # Python setup.py / pyproject.toml with double quotes
         (
-            rf'version\s*=\s*["\']({prev_escaped})["\']',
-            f'version = "{current_version}"',
+            rf'(version\s*=\s*")({prev_escaped})(")',
+            rf"\g<1>{current_version}\g<3>",
         ),
+        # Python setup.py / pyproject.toml with single quotes
         (
-            rf'version\s*=\s*["\']({prev_escaped})["\']',
-            f"version = '{current_version}'",
+            rf"(version\s*=\s*')({prev_escaped})(')",
+            rf"\g<1>{current_version}\g<3>",
         ),
         # package.json
         (rf'"version"\s*:\s*"({prev_escaped})"', f'"version": "{current_version}"'),
-        # __init__.py or version files
+        # __init__.py or version files with double quotes
         (
-            rf'__version__\s*=\s*["\']({prev_escaped})["\']',
-            f'__version__ = "{current_version}"',
+            rf'(__version__\s*=\s*")({prev_escaped})(")',
+            rf"\g<1>{current_version}\g<3>",
         ),
+        # __init__.py or version files with single quotes
         (
-            rf'__version__\s*=\s*["\']({prev_escaped})["\']',
-            f"__version__ = '{current_version}'",
+            rf"(__version__\s*=\s*')({prev_escaped})(')",
+            rf"\g<1>{current_version}\g<3>",
         ),
         # VERSION or version.txt files
         (rf"^{prev_escaped}$", current_version),

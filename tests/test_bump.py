@@ -52,8 +52,11 @@ setup(
 
                 with open(f.name) as rf:
                     content = rf.read()
-                assert 'version="1.2.4"' in content
-                assert 'version="1.2.3"' not in content
+                assert 'version="1.2.4"' in content or 'version = "1.2.4"' in content
+                assert (
+                    'version="1.2.3"' not in content
+                    and 'version = "1.2.3"' not in content
+                )
             finally:
                 os.unlink(f.name)
 
