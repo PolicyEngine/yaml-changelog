@@ -16,7 +16,9 @@ setup(
     entry_points={
         "console_scripts": [
             "build-changelog = yaml_changelog.build:main",
+            "yaml-changelog = yaml_changelog.build:main",
             "bump-version = yaml_changelog.bump:main",
+            "yaml-changelog-init = yaml_changelog.init:init_changelog",
         ],
     },
     packages=find_packages(),

@@ -1,0 +1,43 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-matrix:
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    uses: ./.github/workflows/test.yaml
+    with:
+      python-version: ${{ matrix.python-version }}
+
+  check-changelog-entry:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for changelog entry
+      run: |
+        if [ -f "changelog_entry.yaml" ]; then
+          echo "✅ changelog_entry.yaml found"
+          
+          # Validate it's valid YAML
+          python -c "import yaml; yaml.safe_load(open('changelog_entry.yaml'))"
+          echo "✅ changelog_entry.yaml is valid YAML"
+          
+          # Validate structure
+          python -c "import yaml; entries = yaml.safe_load(open('changelog_entry.yaml')); assert entries, 'Empty file'; assert 'bump' in entries[0] or 'version' in entries[0], 'Missing bump/version'; print('✅ changelog_entry.yaml has valid structure')"
+        else
+          echo "⚠️  No changelog_entry.yaml found"
+          echo "For feature changes, please add a changelog_entry.yaml file"
+          echo ""
+          echo "Example:"
+          echo "- bump: patch"
+          echo "  fixed:"
+          echo "    - Description of fix"
+          echo "  added:"
+          echo "    - Description of new feature"
+        fi

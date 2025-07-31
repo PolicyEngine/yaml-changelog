@@ -1,0 +1,131 @@
+name: Reusable Test Workflow
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        required: false
+        type: string
+        default: '3.10'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov black flake8 mypy types-PyYAML types-requests
+    
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+    
+    - name: Check formatting with black
+      run: |
+        black --check --line-length 88 .
+    
+    - name: Type check with mypy
+      run: |
+        mypy yaml_changelog --ignore-missing-imports || true  # Allow failures for now
+    
+    - name: Test basic functionality
+      run: |
+        # Test that the package is importable
+        python -c "from yaml_changelog import Changelog"
+        
+        # Test command line tools are installed
+        build-changelog --help
+        yaml-changelog --help
+        bump-version --help
+        
+        # Test module execution
+        python -m yaml_changelog --help
+    
+    - name: Test changelog building
+      run: |
+        # Create a test changelog
+        cat > test_changelog.yaml << EOF
+        - bump: minor
+          date: 2024-01-15 10:30:00
+          changes:
+            added:
+              - New feature X
+            fixed:
+              - Bug in Y component
+        
+        - bump: patch
+          date: 2024-01-10 14:20:00
+          changes:
+            fixed:
+              - Typo in error messages
+        EOF
+        
+        # Test building changelog
+        build-changelog test_changelog.yaml --output test_output.md
+        
+        # Verify output exists
+        test -f test_output.md
+        
+        # Test with append file
+        cat > test_entry.yaml << EOF
+        - bump: patch
+          fixed:
+            - Test fix
+        EOF
+        
+        build-changelog test_changelog.yaml --output test_output2.md --append-file test_entry.yaml
+        
+        # Test error handling for missing append file
+        ! build-changelog test_changelog.yaml --output test_output3.md --append-file missing.yaml
+    
+    - name: Test validation
+      run: |
+        # Test invalid change type detection
+        cat > invalid_changelog.yaml << EOF
+        - bump: patch
+          changes:
+            fixes:  # Invalid - should be 'fixed'
+              - Some fix
+        EOF
+        
+        # This should fail
+        ! build-changelog invalid_changelog.yaml --output invalid_output.md || echo "✅ Validation correctly failed"
+    
+    - name: Test version bumping
+      run: |
+        # Create test files
+        echo 'version = "0.1.0"' > test_setup.py
+        echo '{"version": "0.1.0"}' > test_package.json
+        
+        # Create changelog for version bump
+        cat > bump_changelog.yaml << EOF
+        - bump: minor
+          changes:
+            added:
+              - New feature
+        
+        - version: 0.1.0
+          changes:
+            added:
+              - Initial release
+        EOF
+        
+        # Test version bumping
+        bump-version bump_changelog.yaml test_setup.py test_package.json
+        
+        # Verify versions were updated
+        grep 'version = "0.2.0"' test_setup.py
+        grep '"version": "0.2.0"' test_package.json

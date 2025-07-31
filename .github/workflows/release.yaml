@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install build twine
+    
+    - name: Check for changelog entry
+      run: |
+        if [ ! -f "changelog_entry.yaml" ] || [ ! -s "changelog_entry.yaml" ]; then
+          echo "❌ Error: No changelog_entry.yaml found or file is empty"
+          echo "Please create a changelog_entry.yaml file for this release"
+          exit 1
+        fi
+        
+        # Check if it's just a placeholder
+        if grep -q "Placeholder for next changelog entry" changelog_entry.yaml; then
+          echo "❌ Error: changelog_entry.yaml is just a placeholder"
+          echo "Please add actual changelog entries"
+          exit 1
+        fi
+    
+    - name: Update changelog
+      run: |
+        # Append changelog entry to main changelog
+        build-changelog changelog.yaml \
+          --output CHANGELOG.md \
+          --append-file changelog_entry.yaml \
+          --org PolicyEngine \
+          --repo yaml-changelog \
+          --update-last-date
+        
+        # Also update the YAML file
+        cp changelog.yaml changelog_backup.yaml
+        build-changelog changelog.yaml \
+          --output changelog_new.yaml \
+          --append-file changelog_entry.yaml
+        mv changelog_new.yaml changelog.yaml
+    
+    - name: Get version
+      id: version
+      run: |
+        # Extract version from updated changelog
+        VERSION=$(python -c "from yaml_changelog import Changelog; cl = Changelog('changelog.yaml'); cl._write_to_md(); print(cl.current_version)")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+    
+    - name: Update version in setup.py
+      run: |
+        # Use the safe version bumping
+        bump-version changelog.yaml setup.py
+    
+    - name: Clear changelog entry
+      run: |
+        # Clear the content but keep the file
+        echo "# Placeholder for next changelog entry" > changelog_entry.yaml
+    
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add CHANGELOG.md changelog.yaml setup.py changelog_entry.yaml
+        git commit -m "Release version ${{ steps.version.outputs.version }} [skip ci]" || echo "No changes to commit"
+    
+    - name: Push changes
+      run: |
+        git push origin HEAD:main || echo "No changes to push"
+    
+    - name: Create release tag
+      run: |
+        git tag "v${{ steps.version.outputs.version }}" || echo "Tag already exists"
+        git push origin "v${{ steps.version.outputs.version }}" || echo "Tag already pushed"
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.version.outputs.version }}
+        release_name: Release ${{ steps.version.outputs.version }}
+        body: |
+          See [CHANGELOG.md](https://github.com/PolicyEngine/yaml-changelog/blob/main/CHANGELOG.md) for details.
+        draft: false
+        prerelease: false
+      continue-on-error: true  # In case release already exists
+    
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        if [ -n "$TWINE_PASSWORD" ]; then
+          twine upload dist/* --skip-existing
+        else
+          echo "⚠️  PYPI_API_TOKEN not set, skipping PyPI upload"
+        fi

@@ -2,31 +2,44 @@ from argparse import ArgumentParser
 from datetime import datetime, timedelta, timezone
 import logging
 import os
-from typing import Union
+from typing import Union, List, Dict, Any, Optional
 from pathlib import Path
 import yaml
 import requests
 
 
 class VersionNumber:
-    def __init__(self, major: int = 0, minor: int = 0, patch: int = 0):
+    """Represents a semantic version number with major, minor, and patch components."""
+    
+    def __init__(self, major: int = 0, minor: int = 0, patch: int = 0) -> None:
         self.major = major
         self.minor = minor
         self.patch = patch
 
-    def bump_major(self):
+    def bump_major(self) -> None:
+        """Increment major version and reset minor and patch to 0."""
         self.major += 1
         self.minor = 0
         self.patch = 0
 
-    def bump_minor(self):
+    def bump_minor(self) -> None:
+        """Increment minor version and reset patch to 0."""
         self.minor += 1
         self.patch = 0
 
-    def bump_patch(self):
+    def bump_patch(self) -> None:
+        """Increment patch version."""
         self.patch += 1
 
-    def bump(self, type: str):
+    def bump(self, type: str) -> None:
+        """Bump version based on type (major, minor, or patch).
+        
+        Args:
+            type: Version bump type - 'major', 'minor', or 'patch'
+            
+        Raises:
+            ValueError: If type is not one of the valid options
+        """
         if type == "major":
             self.bump_major()
         elif type == "minor":
@@ -36,11 +49,12 @@ class VersionNumber:
         else:
             raise ValueError(f"Unknown version bump type: {type}")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return version string in format 'major.minor.patch'."""
         return f"{self.major}.{self.minor}.{self.patch}"
 
 
-CHANGE_TYPES = [
+CHANGE_TYPES: List[str] = [
     "added",
     "changed",
     "deprecated",
@@ -51,22 +65,42 @@ CHANGE_TYPES = [
 
 
 class Changelog:
-    entries = None
-    starter = None
-    repo: str = None
-    org: str = None
+    """Manages changelog entries and converts between YAML and Markdown formats."""
+    
+    entries: Optional[List[Dict[str, Any]]] = None
+    starter: Optional[str] = None
+    repo: Optional[str] = None
+    org: Optional[str] = None
     start_from: str = "0.0.0"
+    current_version: str = ""
+    previous_version: str = ""
 
     def __init__(
         self,
         file: Union[str, Path],
-        repo: str = None,
-        org: str = None,
-        template: str = None,
+        repo: Optional[str] = None,
+        org: Optional[str] = None,
+        template: Optional[str] = None,
         start_from: str = "0.0.0",
         update_last_date: bool = False,
-        append: Union[str, Path] = None,
-    ):
+        append: Optional[Union[str, Path]] = None,
+    ) -> None:
+        """Initialize a Changelog instance.
+        
+        Args:
+            file: Path to the changelog file (YAML or Markdown)
+            repo: GitHub repository name for generating comparison links
+            org: GitHub organization name for generating comparison links
+            template: Path to Markdown template file
+            start_from: Starting version number (default: "0.0.0")
+            update_last_date: Whether to update entries without dates to current timestamp
+            append: Path to changelog entry file to append to main changelog
+            
+        Raises:
+            NotImplementedError: If file type is not supported
+            FileNotFoundError: If append file is specified but doesn't exist
+            ValueError: If changelog entries are invalid
+        """
         if isinstance(file, str):
             self.file = Path(file)
 
@@ -90,14 +124,32 @@ class Changelog:
                 if "date" not in entry:
                     entry["date"] = datetime.now().replace(microsecond=0)
 
-    def _get_github_merge_date(self, version: str):
+    def _get_github_merge_date(self, version: str) -> datetime:
+        """Fetch the merge date of a version tag from GitHub API.
+        
+        Args:
+            version: Version tag to look up
+            
+        Returns:
+            DateTime when the version was tagged
+        """
         link = requests.get(
             f"https://api.github.com/repos/policyengine/policyengine/git/ref/tags/{version}"
         ).json()
         result = requests.get(link["object"]["url"]).json()["author"]["date"]
         return datetime.strptime(result, "%Y-%m-%dT%H:%M:%SZ")
 
-    def _parse_from_yaml(self, file: Path, appended_file: Path = None):
+    def _parse_from_yaml(self, file: Path, appended_file: Optional[Path] = None) -> None:
+        """Parse changelog entries from a YAML file.
+        
+        Args:
+            file: Path to the main YAML changelog file
+            appended_file: Optional path to changelog entry file to append
+            
+        Raises:
+            FileNotFoundError: If appended_file is specified but doesn't exist
+            ValueError: If changelog entries are empty or invalid
+        """
         with open(file) as f:
             self.entries = yaml.safe_load(f)
         for entry in self.entries:
@@ -109,6 +161,20 @@ class Changelog:
                     entry["changes"][change_type] = entry[change_type]
                     del entry[change_type]
         if appended_file is not None:
+            if not os.path.exists(appended_file):
+                raise FileNotFoundError(
+                    f"Error: changelog_entry.yaml not found at '{appended_file}'.\n\n"
+                    f"When using --append-file (often in --release mode), you must create a changelog_entry.yaml file.\n\n"
+                    f"Example changelog_entry.yaml:\n"
+                    f"- bump: patch\n"
+                    f"  fixed:\n"
+                    f"    - Fixed bug X\n"
+                    f"    - Resolved issue Y\n"
+                    f"  added:\n"
+                    f"    - Added feature Z\n\n"
+                    f"Valid change types: {', '.join(CHANGE_TYPES)}\n"
+                    f"Valid bump types: major, minor, patch"
+                )
             with open(appended_file) as f:
                 try:
                     self.entries.extend(yaml.safe_load(f))
@@ -116,8 +182,22 @@ class Changelog:
                     raise ValueError(
                         f"You haven't provided a changelog entry in {appended_file}. It should look like this: \n\n- bump: minor\n  added:\n  - Some new feature."
                     )
+        
+        # Validate all entries
+        self._validate_entries()
 
-    def _parse_from_md(self, file: Path):
+    def _parse_from_md(self, file: Path) -> None:
+        """Parse changelog entries from a Markdown file.
+        
+        Args:
+            file: Path to the Markdown changelog file
+            
+        Note:
+            Expects changelog entries in the format:
+            ## [version] - date
+            ### Added/Changed/Fixed/etc
+            - Change item
+        """
         with open(file) as f:
             changelog = f.readlines()
         entries = []
@@ -173,7 +253,7 @@ class Changelog:
                 current_date = entry["date"]
                 if entry["date"] <= last_date:
                     entry["date"] = last_date + timedelta(seconds=1)
-                    logging.warn(
+                    logging.warning(
                         f"Invalid date: {current_date} for version {entry['_version']}: setting to {entry['date']}"
                     )
                     current_date = entry["date"]
@@ -201,11 +281,49 @@ class Changelog:
         entries[0]["version"] = self.start_from
 
         self.entries = entries
+        
+        # Validate all entries
+        self._validate_entries()
+    
+    def _validate_entries(self) -> None:
+        """Validate that all changelog entries have valid change types.
+        
+        Raises:
+            ValueError: If an invalid change type is found
+        """
+        for i, entry in enumerate(self.entries):
+            if "changes" in entry:
+                for change_type in entry["changes"]:
+                    if change_type not in CHANGE_TYPES:
+                        # Find which entry this is (by version or index)
+                        entry_desc = f"entry {i + 1}"
+                        if "version" in entry:
+                            entry_desc = f"version {entry['version']}"
+                        elif "bump" in entry:
+                            entry_desc = f"entry {i + 1} (bump: {entry['bump']})"
+                        
+                        raise ValueError(
+                            f"Invalid change type '{change_type}' in {entry_desc}. "
+                            f"Valid change types are: {', '.join(CHANGE_TYPES)}"
+                        )
 
     def _write_to_yaml(self) -> str:
+        """Convert changelog entries to YAML format.
+        
+        Returns:
+            YAML string representation of changelog entries
+        """
         return yaml.safe_dump(self.entries)
 
     def _write_to_md(self) -> str:
+        """Convert changelog entries to Markdown format.
+        
+        Returns:
+            Markdown string representation of changelog with version comparison links
+            
+        Side effects:
+            Sets self.current_version and self.previous_version attributes
+        """
         md_entries = []
         links = []
         version = VersionNumber()
@@ -213,7 +331,7 @@ class Changelog:
             self.entries, key=lambda x: x.get("date", datetime.now())
         )
         for i in range(len(entries)):
-            print("debug: ", entries[i])
+            # Debug output removed - was: print("debug: ", entries[i])
             entry = entries[i]
             previous_version = str(version)
             entry_text = ""
@@ -246,16 +364,27 @@ class Changelog:
         self.previous_version = previous_version
         return output + "\n"
 
-    def write_markdown(self, path: Path = "CHANGELOG.md"):
+    def write_markdown(self, path: Union[str, Path] = "CHANGELOG.md") -> None:
+        """Write changelog to a Markdown file.
+        
+        Args:
+            path: Output file path (default: "CHANGELOG.md")
+        """
         with open(path, "w") as f:
             f.write(self._write_to_md())
 
-    def write_yaml(self, path: Path = "CHANGELOG.yaml"):
+    def write_yaml(self, path: Union[str, Path] = "CHANGELOG.yaml") -> None:
+        """Write changelog to a YAML file.
+        
+        Args:
+            path: Output file path (default: "CHANGELOG.yaml")
+        """
         with open(path, "w") as f:
             f.write(self._write_to_yaml())
 
 
-def main():
+def main() -> None:
+    """Main entry point for the build-changelog command."""
     parser = ArgumentParser()
     parser.add_argument("file", help="File to parse.")
     parser.add_argument(
@@ -275,7 +404,21 @@ def main():
         help="Update the last date in the changelog.",
         action="store_true",
     )
+    parser.add_argument(
+        "--auto-detect",
+        help="Auto-detect organization and repository from git remote.",
+        action="store_true",
+    )
     args = parser.parse_args()
+    
+    # Auto-detect org and repo if requested and not provided
+    if args.auto_detect and (not args.org or not args.repo):
+        from yaml_changelog.utils import get_git_remote_info
+        detected_org, detected_repo = get_git_remote_info()
+        if not args.org and detected_org:
+            args.org = detected_org
+        if not args.repo and detected_repo:
+            args.repo = detected_repo
 
     cl = Changelog(
         args.file,

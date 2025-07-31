@@ -1,0 +1,44 @@
+name: Push to Main
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+    with:
+      python-version: '3.10'
+
+  check-release:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check if release needed
+      id: check
+      run: |
+        # Check if changelog_entry.yaml exists and has content
+        if [ -f "changelog_entry.yaml" ] && [ -s "changelog_entry.yaml" ]; then
+          # Check if it's not just a placeholder
+          if ! grep -q "Placeholder for next changelog entry" changelog_entry.yaml; then
+            echo "should-release=true" >> $GITHUB_OUTPUT
+            echo "📦 Release needed - changelog_entry.yaml found"
+          else
+            echo "should-release=false" >> $GITHUB_OUTPUT
+            echo "⏭️  No release needed - changelog_entry.yaml is placeholder"
+          fi
+        else
+          echo "should-release=false" >> $GITHUB_OUTPUT
+          echo "⏭️  No release needed - no changelog_entry.yaml"
+        fi
+
+  release:
+    needs: check-release
+    if: needs.check-release.outputs.should-release == 'true'
+    uses: ./.github/workflows/release.yaml
+    secrets: inherit
