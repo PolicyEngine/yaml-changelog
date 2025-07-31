@@ -8,6 +8,76 @@ A lightweight Python package to manage changelogs in YAML format and convert the
 pip install yaml-changelog
 ```
 
+## Changelog Structure
+
+yaml-changelog uses a structured YAML format for managing changelog entries:
+
+### Main Changelog (changelog.yaml)
+
+```yaml
+# Entries are listed in reverse chronological order (newest first)
+- bump: minor
+  date: 2024-01-15 10:30:00  # Optional, will be set automatically
+  changes:
+    added:
+      - New feature X
+      - API endpoint for Y
+    fixed:
+      - Bug in authentication
+    changed:
+      - Improved performance of data processing
+
+- version: 1.0.0  # Explicit version instead of bump
+  date: 2024-01-10 14:20:00
+  changes:
+    added:
+      - Initial release
+```
+
+### Entry File (changelog_entry.yaml)
+
+For new changes, create a `changelog_entry.yaml`:
+
+```yaml
+# Can be a list for multiple entries
+- bump: patch  # major, minor, or patch
+  changes:
+    fixed:
+      - Critical security issue
+      
+# Alternative format (single entry)
+bump: minor
+added:
+  - New dashboard component
+fixed:
+  - Memory leak in worker process
+```
+
+### Valid Change Types
+
+- `added`: New features or functionality
+- `changed`: Changes to existing functionality
+- `deprecated`: Features marked for removal
+- `removed`: Features that have been removed
+- `fixed`: Bug fixes
+- `security`: Security-related changes
+
+### Version Management
+
+- **Semantic Versioning**: Follows [semver](https://semver.org/) (MAJOR.MINOR.PATCH)
+- **Bump Types**:
+  - `major`: Breaking changes (1.0.0 → 2.0.0)
+  - `minor`: New features, backwards compatible (1.0.0 → 1.1.0)
+  - `patch`: Bug fixes (1.0.0 → 1.0.1)
+- **Version Sources**: Can use explicit `version` field or `bump` relative to previous
+
+### Date Handling
+
+- Dates are optional and will be set to current timestamp if omitted
+- Format: `YYYY-MM-DD HH:MM:SS` (ISO 8601)
+- Use `--update-last-date` flag to update entries without dates
+- Dates are validated and must be in chronological order
+
 ## Quick Start
 
 ### Basic Usage
@@ -82,6 +152,8 @@ build-changelog <changelog.yaml> --output <output.md> [options]
 - `--template`: Path to Markdown template file (default: built-in template)
 - `--start-from`: Starting version number (default: "0.0.0")
 - `--update-last-date`: Update the last entry's date to current timestamp
+- `--auto-detect`: Auto-detect git organization and repository names
+- `--release`: Release mode - automatically uses changelog_entry.yaml, updates in place, removes entry file after success
 
 **Example with GitHub links:**
 ```bash
@@ -89,6 +161,15 @@ yaml-changelog changelog.yaml \
   --output CHANGELOG.md \
   --org PolicyEngine \
   --repo policyengine-us
+```
+
+**Release Mode Example:**
+```bash
+# Instead of:
+build-changelog changelog.yaml --append-file changelog_entry.yaml --output changelog.yaml --update-last-date
+
+# Simply use:
+build-changelog changelog.yaml --release
 ```
 
 ### bump-version

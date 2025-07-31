@@ -7,6 +7,8 @@
       - Clear error message when changelog_entry.yaml is missing in release mode (fixes #17)
       - Validation for changelog entry change types to prevent silent failures (fixes #13)
       - Safe version bumping with regex patterns to avoid unintended replacements (fixes #11)
+      - --release flag for simplified release workflow (fixes #18)
+      - Documentation for YAML changelog structure and format (fixes #22)
       - GitHub Actions CI workflow for testing pull requests
       - GitHub Actions release workflow for automated releases
       - Reusable GitHub Actions workflows to reduce duplication
@@ -22,3 +24,4 @@
       - GitHub Actions workflows now use reusable components to avoid duplication
     fixed:
       - Version bumping no longer affects import statements or other unintended version strings
+      - Support for alternative changelog entry format without nested changes layer (fixes #9)

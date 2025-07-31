@@ -494,7 +494,22 @@ def main() -> None:
         help="Auto-detect organization and repository from git remote.",
         action="store_true",
     )
+    parser.add_argument(
+        "--release",
+        help="Release mode: append changelog_entry.yaml and update in place",
+        action="store_true",
+    )
     args = parser.parse_args()
+
+    # Handle --release mode
+    if args.release:
+        # Release mode defaults
+        if not args.append_file and os.path.exists("changelog_entry.yaml"):
+            args.append_file = "changelog_entry.yaml"
+        if not args.output:
+            args.output = args.file
+        if not args.update_last_date:
+            args.update_last_date = True
 
     # Auto-detect org and repo if requested and not provided
     if args.auto_detect and (not args.org or not args.repo):
@@ -519,6 +534,11 @@ def main() -> None:
         cl.write_markdown(args.output)
     elif ".yaml" in args.output:
         cl.write_yaml(args.output)
+        
+    # Remove changelog_entry.yaml after successful release
+    if args.release and args.append_file and os.path.exists(args.append_file):
+        os.remove(args.append_file)
+        print(f"✓ Removed {args.append_file} after successful release")
 
 
 if __name__ == "__main__":
