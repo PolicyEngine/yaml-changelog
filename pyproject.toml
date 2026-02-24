@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yaml-changelog"
+version = "0.3.0"
+description = "Build changelogs from YAML files"
+readme = "README.md"
+license = {text = "AGPL-3.0"}
+authors = [
+    {name = "PolicyEngine", email = "hello@policyengine.org"},
+]
+requires-python = ">=3.7"
+dependencies = [
+    "pyyaml",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "towncrier>=24.0.0",
+]
+
+[project.scripts]
+build-changelog = "yaml_changelog.build:main"
+bump-version = "yaml_changelog.bump:main"
+
+[project.urls]
+Homepage = "https://github.com/PolicyEngine/yaml-changelog"
+Repository = "https://github.com/PolicyEngine/yaml-changelog"
+
+[tool.black]
+line-length = 79
+
+[tool.hatch.build]
+include = [
+    "yaml_changelog/**",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+]
+exclude = [
+    "**/__pycache__",
+    "**/*.pyc",
+]
+
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+package_dir = "."
+title_format = "## {version}"
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removed"
+name = "Removed"
+showcontent = true
