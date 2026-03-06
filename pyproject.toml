@@ -20,7 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
-    "black>=23.0.0",
+    "ruff>=0.9.0",
     "towncrier>=24.0.0",
 ]
 
@@ -31,9 +31,6 @@ bump-version = "yaml_changelog.bump:main"
 [project.urls]
 Homepage = "https://github.com/PolicyEngine/yaml-changelog"
 Repository = "https://github.com/PolicyEngine/yaml-changelog"
-
-[tool.black]
-line-length = 79
 
 [tool.hatch.build]
 include = [
