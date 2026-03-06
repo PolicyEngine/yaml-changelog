@@ -6,7 +6,7 @@ install:
 	pip install -e .
 
 format:
-	black . -l 79
+	ruff format .
 
 changelog:
 	python .github/bump_version.py
