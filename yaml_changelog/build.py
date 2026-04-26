@@ -133,7 +133,9 @@ class Changelog:
             try:
                 entry_lines = changelog[start_line:end_line]
                 entry = {}
-                entry["_version"] = entry_lines[0].split("[")[1].split("]")[0].strip()
+                entry["_version"] = (
+                    entry_lines[0].split("[")[1].split("]")[0].strip()
+                )
                 entry["date"] = datetime.fromisoformat(
                     entry_lines[0].split(" - ")[1].strip()
                 )
@@ -177,7 +179,9 @@ class Changelog:
                     current_date = entry["date"]
                 last_date = current_date
 
-        entries = list(sorted(entries, key=lambda x: x.get("date", datetime.now())))
+        entries = list(
+            sorted(entries, key=lambda x: x.get("date", datetime.now()))
+        )
 
         for i in range(1, len(entries)):
             version = entries[i]["_version"]
@@ -205,7 +209,9 @@ class Changelog:
         md_entries = []
         links = []
         version = VersionNumber()
-        entries = sorted(self.entries, key=lambda x: x.get("date", datetime.now()))
+        entries = sorted(
+            self.entries, key=lambda x: x.get("date", datetime.now())
+        )
         for i in range(len(entries)):
             print("debug: ", entries[i])
             entry = entries[i]
@@ -252,7 +258,9 @@ class Changelog:
 def main():
     parser = ArgumentParser()
     parser.add_argument("file", help="File to parse.")
-    parser.add_argument("--append-file", help="File to append to the main YAML file.")
+    parser.add_argument(
+        "--append-file", help="File to append to the main YAML file."
+    )
     parser.add_argument("--org", help="Organization to use for GitHub links.")
     parser.add_argument("--repo", help="Repo to link to.")
     parser.add_argument(
