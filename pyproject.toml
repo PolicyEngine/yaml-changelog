@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yaml-changelog"
-version = "0.3.0"
+version = "0.3.1"
 description = "Build changelogs from YAML files"
 readme = "README.md"
 license = {text = "AGPL-3.0"}
